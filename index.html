@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="fa" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- متا تگ‌های سئو (SEO) با کلمات کلیدی مرتبط -->
+    <meta name="description" content="حذف‌کننده آنلاین متادیتای عکس: پاکسازی اطلاعات GPS، مدل دوربین، تاریخ و سایر داده‌های EXIF بدون ارسال به سرور. حریم خصوصی کامل در مرورگر شما.">
+    <meta name="keywords" content="حذف متادیتا, حذف GPS عکس, حذف اطلاعات دوربین, EXIF, حریم خصوصی تصاویر, ابزار آنلاین, امنیت عکس, intellsoft">
+    <meta name="author" content="IntellSoft">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="پاک‌ساز متادیتا | حذف GPS و مشخصات دوربین">
+    <meta property="og:description" content="ابزار آنلاین و رایگان برای حذف اطلاعات حساس عکس‌ها (GPS، مدل دوربین، تاریخ و ...) مستقیماً در مرورگر شما.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://intellsoft.ir/tools/metadata-cleaner">
+    <meta property="og:image" content="https://intellsoft.ir/assets/metadata-cleaner-og.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>پاک‌ساز متادیتا | حذف GPS و اطلاعات دوربین (آنلاین و امن)</title>
+    <!-- Exif-js for metadata extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+    <!-- Font Awesome 6 (free) for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Reset & base - طراحی مدرن 2026 با پشتیبانی از تم روشن/تاریک */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        :root {
+            /* Light theme (پیش‌فرض) */
+            --bg-gradient: linear-gradient(145deg, #f8faff 0%, #eef2f9 100%);
+            --surface: rgba(255,255,255,0.75);
+            --surface-solid: #ffffff;
+            --text-primary: #1e2b3f;
+            --text-secondary: #3e4e64;
+            --border-light: rgba(0,20,40,0.1);
+            --accent: #3b6ea5;
+            --accent-soft: #5b8ec9;
+            --shadow: 0 20px 40px -12px rgba(0,20,40,0.25);
+            --card-bg: rgba(255,255,255,0.6);
+            --icon-filter: none;
+            --success: #2c6e4f;
+            --info-bg: rgba(59, 110, 165, 0.15);
+            --info-border: rgba(59, 110, 165, 0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(145deg, #0b1a2a 0%, #142433 100%);
+            --surface: rgba(20,35,50,0.8);
+            --surface-solid: #1f2f3f;
+            --text-primary: #eef4fc;
+            --text-secondary: #b0c4de;
+            --border-light: rgba(255,255,255,0.08);
+            --accent: #6da5d9;
+            --accent-soft: #4a7ca5;
+            --shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+            --card-bg: rgba(25,40,55,0.7);
+            --icon-filter: brightness(0.9);
+            --success: #6fbf9f;
+            --info-bg: rgba(109, 165, 217, 0.2);
+            --info-border: rgba(109, 165, 217, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            backdrop-filter: blur(2px);
+            line-height: 1.6;
+        }
+
+        /* کانتینر اصلی با شیشه‌ای مدرن */
+        .glass-panel {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--surface);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--border-light);
+            border-radius: 3rem;
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+        }
+
+        /* هدر و دکمه تغییر تم */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 60px;
+            padding: 0.4rem;
+            display: flex;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-btn {
+            border: none;
+            background: transparent;
+            font-size: 1.3rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .theme-btn.active {
+            background: var(--surface-solid);
+            color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .theme-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* ناحیه آپلود با طراحی مدرن دراگ & دراپ */
+        .upload-area {
+            background: var(--card-bg);
+            border: 2px dashed var(--accent-soft);
+            border-radius: 2.5rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            transform: scale(1.02);
+            background: var(--surface);
+        }
+
+        .upload-area i {
+            font-size: 4rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            filter: var(--icon-filter);
+        }
+
+        .upload-area h3 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* پیش‌نمایش دوگانه (قبل و بعد) */
+        .preview-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+
+        .preview-card {
+            flex: 1 1 250px;
+            background: var(--card-bg);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .preview-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .preview-card h3 i {
+            color: var(--accent);
+        }
+
+        .image-container {
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 1.2rem;
+            overflow: hidden;
+            background: var(--surface-solid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .meta-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: var(--surface);
+            padding: 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-light);
+            word-break: break-word;
+        }
+
+        .meta-info i {
+            margin-right: 0.4rem;
+            color: var(--accent);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        /* دکمه دانلود و کنترل‌ها */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 1rem 2.2rem;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -8px var(--accent);
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.6);
+        }
+
+        .btn:hover {
+            background: var(--accent-soft);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 24px -8px var(--accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* بخش اطلاع‌رسانی امنیت و حریم خصوصی */
+        .security-notice {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: 2rem;
+            padding: 1.2rem 2rem;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .security-notice i {
+            font-size: 1.8rem;
+            color: var(--accent);
+        }
+
+        .security-notice strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* فوتر با لینک به سایت */
+        .footer-note {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            border-top: 1px solid var(--border-light);
+            padding-top: 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem 1.5rem;
+        }
+
+        .footer-note a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px dotted transparent;
+            transition: border-color 0.2s;
+        }
+
+        .footer-note a:hover {
+            border-bottom-color: var(--accent);
+        }
+
+        .footer-note i {
+            margin: 0 0.3rem;
+        }
+
+        /* رسپانسیو کامل */
+        @media (max-width: 700px) {
+            .glass-panel { padding: 1.5rem; border-radius: 2rem; }
+            .logo h1 { font-size: 1.8rem; }
+            .theme-btn span { display: none; }
+            .theme-btn i { font-size: 1.5rem; }
+            .upload-area h3 { font-size: 1.4rem; }
+            .preview-section { flex-direction: column; }
+            .security-notice { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="glass-panel">
+        <div class="header">
+            <div class="logo">
+                <h1><i class="fas fa-shield-halfling" style="margin-right: 0.5rem;"></i>پاک‌ساز متادیتا</h1>
+                <p>حذف ایمن GPS و مشخصات دوربین از عکس‌ها • کاملاً در مرورگر</p>
+            </div>
+            <div class="theme-toggle" id="themeToggle">
+                <button class="theme-btn active" data-theme="light"><i class="fas fa-sun"></i><span>روشن</span></button>
+                <button class="theme-btn" data-theme="dark"><i class="fas fa-moon"></i><span>تاریک</span></button>
+            </div>
+        </div>
+
+        <!-- ناحیه آپلود با قابلیت کلیک و دراگ -->
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>عکس خود را بکشید یا کلیک کنید</h3>
+            <p>فرمت‌های JPEG, PNG, WebP (حداکثر ۲۰ مگابایت)</p>
+            <input type="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp" />
+        </div>
+
+        <!-- بخش پیش‌نمایش (ابتدا مخفی است) -->
+        <div id="previewWrapper" style="display: none;">
+            <div class="preview-section">
+                <!-- کارت اصلی (قبل از پاکسازی) -->
+                <div class="preview-card">
+                    <h3><i class="fas fa-image"></i> تصویر اصلی</h3>
+                    <div class="image-container" id="originalContainer">
+                        <img id="originalPreview" src="" alt="پیش‌نمایش اصلی">
+                    </div>
+                    <div class="meta-info" id="originalMeta">
+                        <i class="fas fa-info-circle"></i> در حال خواندن متادیتا...
+                    </div>
+                </div>
+                <!-- کارت پاک‌سازی شده (بعد از حذف متادیتا) -->
+                <div class="preview-card">
+                    <h3><i class="fas fa-shield-alt"></i> بدون متادیتا <span class="badge">امن</span></h3>
+                    <div class="image-container" id="cleanContainer">
+                        <img id="cleanPreview" src="" alt="پیش‌نمایش پاک‌شده">
+                    </div>
+                    <div class="meta-info" id="cleanMeta">
+                        <i class="fas fa-check-circle"></i> تمام متادیتاها حذف شد.
+                    </div>
+                </div>
+            </div>
+
+            <!-- نوار عملیات -->
+            <div class="action-bar">
+                <button class="btn btn-outline" id="newImageBtn"><i class="fas fa-upload"></i> عکس جدید</button>
+                <button class="btn" id="downloadBtn" disabled><i class="fas fa-download"></i> دانلود تصویر پاک‌شده</button>
+            </div>
+        </div>
+
+        <!-- بخش امنیت و حریم خصوصی (همیشه نمایش داده می‌شود) -->
+        <div class="security-notice">
+            <i class="fas fa-shield-halfling"></i>
+            <span><strong>کاملاً آنلاین و امن:</strong> هیچ اطلاعاتی به سرور ارسال نمی‌شود. تمام پردازش‌ها در مرورگر شما انجام می‌گیرد.</span>
+        </div>
+
+        <!-- فوتر با لینک به سایت IntellSoft -->
+        <div class="footer-note">
+            <span><i class="fas fa-lock"></i> حریم خصوصی: همه‌چیز در مرورگر شما پردازش می‌شود • طراحی ۲۰۲۶</span>
+            <span>
+                <i class="fas fa-code"></i> توسعه توسط <a href="https://intellsoft.ir/" target="_blank" rel="noopener">IntellSoft</a>
+                <i class="fas fa-external-link-alt" style="font-size: 0.8rem;"></i>
+            </span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ================== مدیریت تم (روشن/تاریک) ==================
+            const themeButtons = document.querySelectorAll('.theme-btn');
+            const body = document.body;
+
+            function setTheme(theme) {
+                body.setAttribute('data-theme', theme);
+                localStorage.setItem('preferred-theme', theme);
+                themeButtons.forEach(btn => {
+                    const btnTheme = btn.getAttribute('data-theme');
+                    if (btnTheme === theme) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            }
+
+            // تشخیص تم سیستمی
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedTheme = localStorage.getItem('preferred-theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                setTheme(prefersDark ? 'dark' : 'light');
+            }
+
+            themeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+
+            // تغییر خودکار با تغییر تم سیستمی (در صورت عدم ذخیره)
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('preferred-theme')) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+
+            // ================== منطق اصلی برنامه ==================
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const previewWrapper = document.getElementById('previewWrapper');
+            const originalPreview = document.getElementById('originalPreview');
+            const cleanPreview = document.getElementById('cleanPreview');
+            const originalMeta = document.getElementById('originalMeta');
+            const cleanMeta = document.getElementById('cleanMeta');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const newImageBtn = document.getElementById('newImageBtn');
+
+            let currentFile = null;
+            let cleanedBlob = null; // برای دانلود
+            let originalObjectUrl = null;
+            let cleanObjectUrl = null;
+
+            // باز کردن انتخاب فایل با کلیک روی ناحیه آپلود
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // درگ و دراپ
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--accent)';
+                uploadArea.style.background = 'var(--surface)';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = 'var(--accent-soft)';
+                uploadArea.style.background = 'var(--card-bg)';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--accent-soft)';
+                uploadArea.style.background = 'var(--card-bg)';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) handleFile(files[0]);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            });
+
+            // دکمه عکس جدید
+            newImageBtn.addEventListener('click', () => {
+                // پاکسازی و برگشت به حالت اول
+                resetPreviews();
+                fileInput.value = ''; // اجازه آپلود مجدد فایل مشابه
+                previewWrapper.style.display = 'none';
+                if (originalObjectUrl) URL.revokeObjectURL(originalObjectUrl);
+                if (cleanObjectUrl) URL.revokeObjectURL(cleanObjectUrl);
+                currentFile = null;
+                cleanedBlob = null;
+            });
+
+            function resetPreviews() {
+                originalPreview.src = '';
+                cleanPreview.src = '';
+                originalMeta.innerHTML = '<i class="fas fa-info-circle"></i> در انتظار عکس...';
+                cleanMeta.innerHTML = '<i class="fas fa-check-circle"></i> تمام متادیتاها حذف خواهد شد.';
+                downloadBtn.disabled = true;
+            }
+
+            // تابع اصلی پردازش فایل
+            function handleFile(file) {
+                // بررسی نوع و سایز (اختیاری)
+                if (!file.type.match('image.*')) {
+                    alert('لطفاً یک فایل تصویری معتبر انتخاب کنید.');
+                    return;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    alert('حجم فایل نباید بیشتر از ۲۰ مگابایت باشد.');
+                    return;
+                }
+
+                currentFile = file;
+                previewWrapper.style.display = 'block';
+                originalMeta.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> استخراج متادیتا...';
+
+                // نمایش پیش‌نمایش اصلی
+                if (originalObjectUrl) URL.revokeObjectURL(originalObjectUrl);
+                originalObjectUrl = URL.createObjectURL(file);
+                originalPreview.src = originalObjectUrl;
+
+                // ===== استفاده از exif-js برای خواندن متادیتای GPS و دوربین =====
+                EXIF.getData(file, function() {
+                    const exifData = EXIF.getAllTags(this);
+                    let metadataText = '';
+
+                    if (Object.keys(exifData).length > 0) {
+                        // استخراج اطلاعات حساس (GPS, Make, Model و ...)
+                        const make = exifData.Make || 'نامشخص';
+                        const model = exifData.Model || 'نامشخص';
+                        const gpsLat = exifData.GPSLatitude ? exifData.GPSLatitude.join(', ') : 'ندارد';
+                        const gpsLng = exifData.GPSLongitude ? exifData.GPSLongitude.join(', ') : 'ندارد';
+                        const gpsRef = exifData.GPSLatitudeRef || '';
+                        const datetime = exifData.DateTime || 'نامشخص';
+                        const focalLength = exifData.FocalLength || 'نامشخص';
+                        const fNumber = exifData.FNumber ? 'f/' + exifData.FNumber : 'نامشخص';
+                        const iso = exifData.ISOSpeedRatings || 'نامشخص';
+
+                        metadataText = `
+                            <i class="fas fa-camera"></i> ${make} ${model}<br>
+                            <i class="fas fa-calendar"></i> ${datetime}<br>
+                            <i class="fas fa-map-marker-alt"></i> GPS: ${gpsLat} ${gpsRef} , ${gpsLng}<br>
+                            <i class="fas fa-sliders-h"></i> ${focalLength}mm  f/${fNumber}  ISO${iso}
+                        `;
+                    } else {
+                        metadataText = '<i class="fas fa-check"></i> متادیتای خاصی یافت نشد (یا فرمت فاقد EXIF).';
+                    }
+
+                    originalMeta.innerHTML = metadataText;
+
+                    // پردازش برای حذف متادیتا با استفاده از canvas
+                    const orientation = exifData.Orientation || 1; // جهت‌گیری برای نمایش صحیح
+                    removeMetadataWithCanvas(file, orientation);
+                });
+
+                // تابع حذف متادیتا با canvas و اعمال orientation
+                function removeMetadataWithCanvas(file, orientation) {
+                    const img = new Image();
+                    const objectUrl = URL.createObjectURL(file);
+                    img.src = objectUrl;
+
+                    img.onload = function() {
+                        // ایجاد canvas با ابعاد اصلی
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // محاسبه ابعاد با توجه به orientation (برای چرخش)
+                        let width = img.naturalWidth;
+                        let height = img.naturalHeight;
+
+                        // تنظیم ابعاد canvas بر اساس orientation (اگر 5 یا 6 یا 7 یا 8 باشند عرض و ارتفاع جابجا می‌شود)
+                        if (orientation >= 5 && orientation <= 8) {
+                            canvas.width = height;
+                            canvas.height = width;
+                        } else {
+                            canvas.width = width;
+                            canvas.height = height;
+                        }
+
+                        // اعمال تبدیل برای چرخش صحیح
+                        switch (orientation) {
+                            case 2: // horizontal flip
+                                ctx.translate(canvas.width, 0);
+                                ctx.scale(-1, 1);
+                                break;
+                            case 3: // rotate 180
+                                ctx.translate(canvas.width, canvas.height);
+                                ctx.rotate(Math.PI);
+                                break;
+                            case 4: // vertical flip
+                                ctx.translate(0, canvas.height);
+                                ctx.scale(1, -1);
+                                break;
+                            case 5: // rotate 90 and flip horizontal
+                                ctx.rotate(0.5 * Math.PI);
+                                ctx.scale(1, -1);
+                                break;
+                            case 6: // rotate 90
+                                ctx.rotate(0.5 * Math.PI);
+                                ctx.translate(0, -canvas.height);
+                                break;
+                            case 7: // rotate 90 and flip vertical
+                                ctx.rotate(0.5 * Math.PI);
+                                ctx.translate(canvas.width, -canvas.height);
+                                ctx.scale(-1, 1);
+                                break;
+                            case 8: // rotate 270
+                                ctx.rotate(-0.5 * Math.PI);
+                                ctx.translate(-canvas.width, 0);
+                                break;
+                            default: // orientation 1: normal
+                                break;
+                        }
+
+                        // رسم تصویر با در نظر گرفتن تبدیلات
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // تبدیل canvas به blob با فرمت اصلی (تا جای ممکن)
+                        const mimeType = file.type || 'image/jpeg';
+                        canvas.toBlob((blob) => {
+                            cleanedBlob = blob;
+                            if (cleanObjectUrl) URL.revokeObjectURL(cleanObjectUrl);
+                            cleanObjectUrl = URL.createObjectURL(blob);
+                            cleanPreview.src = cleanObjectUrl;
+                            downloadBtn.disabled = false;
+
+                            // نمایش پیام موفقیت در کارت پاک‌شده
+                            cleanMeta.innerHTML = '<i class="fas fa-shield-alt"></i> تمام متادیتاها (GPS، دوربین، تاریخ و ...) با موفقیت حذف شدند.';
+                        }, mimeType, 0.95); // کیفیت ۰.۹۵ برای JPEG
+
+                        // آزادسازی objectURL
+                        URL.revokeObjectURL(objectUrl);
+                    };
+
+                    img.onerror = function() {
+                        alert('خطا در بارگذاری تصویر.');
+                        URL.revokeObjectURL(objectUrl);
+                    };
+                }
+            }
+
+            // دانلود فایل پاک‌شده
+            downloadBtn.addEventListener('click', () => {
+                if (cleanedBlob && currentFile) {
+                    // ساخت نام جدید با پسوند اصلی
+                    const originalName = currentFile.name;
+                    const ext = originalName.substring(originalName.lastIndexOf('.')) || '.jpg';
+                    const newName = originalName.replace(/(\.[^/.]+)?$/, '_clean$&');
+
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(cleanedBlob);
+                    link.download = newName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }
+            });
+
+            // پاکسازی URLها هنگام بستن یا تعویض
+            window.addEventListener('beforeunload', () => {
+                if (originalObjectUrl) URL.revokeObjectURL(originalObjectUrl);
+                if (cleanObjectUrl) URL.revokeObjectURL(cleanObjectUrl);
+            });
+        })();
+    </script>
+</body>
+</html>
